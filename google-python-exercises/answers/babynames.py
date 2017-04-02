@@ -39,13 +39,11 @@ Suggested milestones for incremental development:
 def extract_year(filename):
   file = open(filename, 'r')
   for line in file:
-    match = re.search(r'<h3', line)
+    match = re.search(r'Popularity in \d\d\d\d', line)
     if match:
-      s = line
-  get_year = re.search('\d\d\d\d', s)
-  if get_year:
-    year = get_year.group()
+      year = match.group()[-4:]
   return year
+
 
 def extract_names(filename):
   """
@@ -54,8 +52,18 @@ def extract_names(filename):
   ['2006', 'Aaliyah 91', Aaron 57', 'Abagail 895', ' ...]
   """
   # +++your code here+++
-
-  return
+  baby_names = []
+  male_dict = {}
+  female_dict = {}
+  #baby_names.append(extract_year(filename))
+  file = open(filename, 'r')
+  for line in file:
+    match = re.search(r'<td>(\d+)</td><td>(\w+)</td><td>(\w+)</td>', line)
+    if match:
+      male_dict[match.group(1)] = match.group(2)
+      female_dict[match.group(1)] = match.group(3)
+  #Next step: build the list that's going to be the function return
+  return male_dict
 
 
 def main():
@@ -63,8 +71,10 @@ def main():
   # Make a list of command line arguments, omitting the [0] element
   # which is the script itself.
 
-  file = "/home/aiquis/google-python-class/google-python-exercises/babynames/baby1990.html"
-  print extract_year(file)
+  #file = "/home/aiquis/google-python-class/google-python-exercises/babynames/baby1990.html"
+  filename = sys.argv[1]
+  name_list = extract_names(filename)
+  print (name_list)
 
 """  
   args = sys.argv[1:]
