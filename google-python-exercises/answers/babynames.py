@@ -55,7 +55,6 @@ def extract_names(filename):
   baby_names = []
   male_dict = {}
   female_dict = {}
-  #baby_names.append(extract_year(filename))
   file = open(filename, 'r')
   for line in file:
     match = re.search(r'<td>(\d+)</td><td>(\w+)</td><td>(\w+)</td>', line)
@@ -63,7 +62,14 @@ def extract_names(filename):
       male_dict[match.group(1)] = match.group(2)
       female_dict[match.group(1)] = match.group(3)
   #Next step: build the list that's going to be the function return
-  return male_dict
+  baby_names.append(extract_year(filename))
+  for k in sorted(male_dict, key = male_dict.get):
+    rank_name_male = male_dict[k] + ' ' + str(k)
+    baby_names.append(rank_name_male)
+  for k in sorted(female_dict, key = female_dict.get):
+    rank_name_female = female_dict[k] + ' ' + str(k)
+    baby_names.append(rank_name_female)
+  return sorted(baby_names)
 
 
 def main():
@@ -71,16 +77,10 @@ def main():
   # Make a list of command line arguments, omitting the [0] element
   # which is the script itself.
 
-  #file = "/home/aiquis/google-python-class/google-python-exercises/babynames/baby1990.html"
-  filename = sys.argv[1]
-  name_list = extract_names(filename)
-  print (name_list)
-
-"""  
   args = sys.argv[1:]
 
   if not args:
-    print 'usage: [--summaryfile] file [file ...]'
+    print('usage: [--summaryfile] file [file ...]')
     sys.exit(1)
 
   # Notice the summary flag and remove it from args if it is present.
@@ -92,6 +92,10 @@ def main():
   # +++your code here+++
   # For each filename, get the names, then either print the text output
   # or write it to a summary file
-"""  
+
+  for filename in args:
+    babynames = extract_names(filename)
+  print(babynames)
+ 
 if __name__ == '__main__':
   main()
