@@ -18,19 +18,33 @@ Here's what a puzzle url looks like:
 10.254.254.28 - - [06/Aug/2007:00:13:48 -0700] "GET /~foo/puzzle-bar-aaab.jpg HTTP/1.0" 302 528 "-" "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.6) Gecko/20070725 Firefox/2.0.0.6"
 """
 
+def sort_remove_duplicates(old_list):
+  new_list = list(set(old_list))
+  return sorted(new_list)
 
 def read_urls(filename):
   """Returns a list of the puzzle urls from the given log file,
   extracting the hostname from the filename itself.
   Screens out duplicate urls and returns the urls sorted into
   increasing order."""
+
+  #Opening the log file to read it's content
   ufile = urllib.urlopen(filename)
   file_read = ufile.read()
-  urls = re.findall(r'[\S]*puzzle[\S]*', file_read)
-  return urls
-  
-  
 
+  #Creating a list with all the occurrences of the pattern we're looking for in the URLs
+  urls = re.findall(r'[\S]*puzzle[\S]*', file_read)
+
+  #Building a complete URL with server name from the filename + the path of the URL
+  file_basename = os.path.basename(filename)
+  path_separator = file_basename.find('_')
+  url_path = file_basename[path_separator+1:]
+  complete_url_path = [url_path + url for url in urls]
+  
+  #Calling a function that remove the duplicates in the list and sort the result
+  return sort_remove_duplicates(complete_url_path)
+  
+  
 def download_images(img_urls, dest_dir):
   """Given the urls already in the correct order, downloads
   each image into the given directory.
