@@ -43,8 +43,8 @@ def read_urls(filename):
   
   #Calling a function that remove the duplicates in the list and sort the result
   return sort_remove_duplicates(complete_url_path)
-  
-  
+
+
 def download_images(img_urls, dest_dir):
   """Given the urls already in the correct order, downloads
   each image into the given directory.
@@ -53,14 +53,24 @@ def download_images(img_urls, dest_dir):
   with an img tag to show each local image file.
   Creates the directory if necessary.
   """
-  # +++your code here+++
+  i = 0
+  if os.path.exists(dest_dir) == False:
+  	os.mkdir(dest_dir)
+  index = file(os.path.join(dest_dir, 'index.html'), 'w+')
+  index.write('<html><body>\n')
+  while i < len(img_urls):
+  	img_path = dest_dir + 'img' + str(i) + '.jpg'
+  	print 'Retrieving...' + img_urls[i]
+  	urllib.urlretrieve('http://' + img_urls[i], img_path)
+  	index.write('<img src="%s">' % img_path)
+  	i += 1
+  index.write('\n</body></html>')
+  index.close()
+
   
 
 def main():
-  url_list = read_urls('/home/aiquis/google-python-class/google-python-exercises/logpuzzle/animal_code.google.com')
-  print url_list
 
-"""
   args = sys.argv[1:]
 
   if not args:
@@ -78,7 +88,6 @@ def main():
     download_images(img_urls, todir)
   else:
     print '\n'.join(img_urls)
-"""
 
 if __name__ == '__main__':
   main()
