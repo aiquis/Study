@@ -31,22 +31,25 @@ def cria_grafo(df):
 
 def dijkstra(grafo, inicio, fim, visitado=[], distancias={},
              antecessores={}):
-    # Referência: http://www.gilles-bertrand.com/2014/03/dijkstra-algorithm-python-example-source-code-shortest-path.html # noqa
-    # Testes básicos
+    # Testes básicos sobre os dados do grafo
     if not grafo:
         print('Grafo vazio')
     if inicio not in grafo:
         print('Vértice inicial não encontrado no grafo')
     if fim not in grafo:
         print('Vértice final não encontrado no grafo')
-    # Condição de parada do algoritmo
+    # Condição de parada do algoritmo para a recursão
     if inicio == fim:
         caminho_minimo = []
         pred = fim
         while pred is not None:
             caminho_minimo.append(pred)
             pred = antecessores.get(pred, None)
-        print(caminho_minimo)
+        # Imprimindo a lista reversa pois a recursão armazena
+        # os vértices percorridos do último para o primeiro
+        # o que não faria sentido para o usuário em relação a
+        # escolha de início e fim
+        print(caminho_minimo[::-1])
         return caminho_minimo, distancias[fim]
     else:
         # Inicialização das distâncias para primeira execução
@@ -69,7 +72,7 @@ def dijkstra(grafo, inicio, fim, visitado=[], distancias={},
             if k not in visitado:
                 nao_visitado[k] = distancias.get(k, float('inf'))
         novo_vertice = min(nao_visitado, key=nao_visitado.get)
-        # Chama a função recursovamente com o novo inicio (que é o
+        # Chama a função recursivamente com o novo inicio (que é o
         # vértice com menor custo selecionado anteriormente)
         # Passa também as listas de vértices visitados, menores distâncias
         # e antecessores atualizada
@@ -83,6 +86,9 @@ def prim(grafo):
     agm_vertices = []
     vertices = {}
     iteracoes = 0
+    # Testes básicos sobre os dados do grafo
+    if not grafo:
+        print('Grafo vazio')
     # Criando chaves para cada vértice do grafo de entrada
     for i in grafo:
         if not vertices:
@@ -98,11 +104,12 @@ def prim(grafo):
     # condições de parada
     visitar_no = min(vertices, key=vertices.get)
     todos_vertices = False
-    # Condição de parada = todos os vértices do grafo estarem em agm_vertices
-    # e agm_vertices ter vertices - 1 elementos
-    while (not todos_vertices and len(agm_vertices) < len(vertices) - 1):
+    # Condição de parada = todos os vértices do grafo estarem em
+    # agm_vertices e agm_vertices ter vertices - 1 elementos
+    while ((not todos_vertices) and (len(agm_vertices) < len(vertices) - 1)):
         iteracoes += 1
-        print('Iteração ', iteracoes)
+        if iteracoes == 1:
+            print('Inserindo o no', visitar_no, 'com peso', 0)
         # Para se elegível o nó não pode já ter sido visitado, ou seja,
         # estar na lista agm_vertices
         if ((visitar_no in vertices) and (visitar_no not in agm_vertices)):
@@ -130,6 +137,7 @@ def prim(grafo):
             # Quando a condição de parada for atingida altera o booleano
             # e print a Árvore gerado e seu custo total
             todos_vertices = True
+    agm_vertices.append(visitar_no)
     print('Árvore Geradora Mínima: ', agm_vertices)
     print('Custo total (em Km): ', agm_custo)
     return None

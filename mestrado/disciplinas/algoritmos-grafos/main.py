@@ -14,12 +14,13 @@ def main():
     data_rj = data[data['uf'] == 'RJ']  # 1880 rows
     data_rj = data_rj.reset_index()
     # Criando versão reduzida do dataset pra testes
-    data_rj_reduzido = data_rj[0:10]
+    data_rj_reduzido = data_rj[0:3]
     # Cria um grafo com estrutura de dicionário à partir de um
     # Pandas DataFrame. Dicionários são o padrão do Python
     # para representação de grafos
     # Referência: https://www.python.org/doc/essays/graphs/
     grafo = cria_grafo(data_rj_reduzido)
+    print(grafo)
     # Prompt para o usuário selecionar qual problema gostaria de resolver
     # Problema 1 - Menor distância entre duas UBS (com opçaõ de remoção)
     # O problema 1 é um problema de caminhos mínimos
@@ -49,16 +50,21 @@ def main():
                        'Digite o código da unidade ou tecle '
                        '"Enter" para sair \n')
         if input3:
-            data_rj_reduzido = data_rj_reduzido[data_rj_reduzido['gid'] !=
-                                                int(input3)]
-            data_rj_reduzido = data_rj_reduzido.reset_index()
-            grafo = cria_grafo(data_rj_reduzido)
-            print('Novo caminho mínimo entre as unidades: \n')
-            caminho_minimo, distancia_minima = dijkstra(grafo, int(input_ubs1),
-                                                        int(input_ubs2),
-                                                        [], {}, {})
-            print('Caminho mínimo = ', caminho_minimo, ' com distância de: ',
-                  distancia_minima, 'Km')
+            if input3 != input_ubs1 and input3 != input_ubs2:
+                data_rj_reduzido = data_rj_reduzido[data_rj_reduzido['gid'] !=
+                                                    int(input3)]
+                data_rj_reduzido = data_rj_reduzido.reset_index()
+                grafo = cria_grafo(data_rj_reduzido)
+                print('Novo caminho mínimo entre as unidades: \n')
+                caminho_minimo, distancia_minima = dijkstra(grafo,
+                                                            int(input_ubs1),
+                                                            int(input_ubs2),
+                                                            [], {}, {})
+                print('Novo caminho mínimo = ', caminho_minimo,
+                      ' com distância de: ', distancia_minima, 'Km')
+            else:
+                print('Não é possível remover esse nó pois é '
+                      'o ponto de partidaou destino da sua busca')
         else:
             print('Finalizando programa')
     elif int(input1) == 2:
