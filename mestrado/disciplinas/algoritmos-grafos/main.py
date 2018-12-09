@@ -14,13 +14,13 @@ def main():
     data_rj = data[data['uf'] == 'RJ']  # 1880 rows
     data_rj = data_rj.reset_index()
     # Criando versão reduzida do dataset pra testes
-    data_rj_reduzido = data_rj[0:3]
+    data_rj_reduzido = data_rj[0:5]
     # Cria um grafo com estrutura de dicionário à partir de um
     # Pandas DataFrame. Dicionários são o padrão do Python
     # para representação de grafos
     # Referência: https://www.python.org/doc/essays/graphs/
     grafo = cria_grafo(data_rj_reduzido)
-    print(grafo)
+    print('Grafo: \n', grafo)
     # Prompt para o usuário selecionar qual problema gostaria de resolver
     # Problema 1 - Menor distância entre duas UBS (com opçaõ de remoção)
     # O problema 1 é um problema de caminhos mínimos

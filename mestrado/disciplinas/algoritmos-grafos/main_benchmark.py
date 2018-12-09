@@ -17,7 +17,7 @@ def main():
     data_rj = data_rj.reset_index()
     # Criando versão reduzida do dataset pra testes
     timestamps = {}
-    for i in range(2, 102):
+    for i in range(1, 101):
         start_time = time.time()
         data_rj_reduzido = data_rj[0:i]
         # Cria um grafo com estrutura de dicionário à partir de um
@@ -35,10 +35,10 @@ def main():
         # caminho_minimo, distancia_minima = dijkstra(grafo, 179, 152)
         # print('Caminho mínimo = ', caminho_minimo, ' com distância de: ',
         #       distancia_minima, 'Km')
-        print('iniciando prim')
-        prim(grafo)
+        # print('iniciando prim')
+        # prim(grafo)
         timestamps[i] = time.time() - start_time
-        with open(r'C:\Users\aiqui\Dropbox\CEFET\Disciplinas\Algoritmos em Grafos\Trabalho\timestamps_prim_100.csv', 'w') as csv_file:
+        with open(r'C:\Users\aiqui\Dropbox\CEFET\Disciplinas\Algoritmos em Grafos\Trabalho\timestamps_cria_grafo_rjfull.csv', 'w') as csv_file:
             writer = csv.writer(csv_file)
             for key, value in timestamps.items():
                 writer.writerow([key, value])
