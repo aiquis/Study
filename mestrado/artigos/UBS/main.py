@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
-from graph_funcs import cria_grafo
+from graph_funcs import (cria_grafo_networkx, transforma_grafo_dicionario,
+                         cria_instacias_grafos, desenha_grafo)
 
 
 def cria_instancias(data):
@@ -84,8 +85,10 @@ def main():
         data_regiao_nordeste, data_regiao_norte = cria_instancias(data)
 
     # Criando dataset reduzido para testes
-    data_cidade_rio_reduzido = data_cidade_rio[0:10]
-    cria_grafo(data_cidade_rio_reduzido)
+    data_cidade_rio_reduzido = data_cidade_rio[0:5]
+    grafo_ubs_cidade_rio = cria_grafo_networkx(data_cidade_rio_reduzido)
+    desenha_grafo(grafo_ubs_cidade_rio)
+    cria_instacias_grafos(data_cidade_rio_reduzido)
 
 
 if __name__ == "__main__":

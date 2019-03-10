@@ -7,7 +7,7 @@ def calcula_distancia(cidade_1, cidade_2):
     # entre eles à partir das coordenadas
     coord1 = (cidade_1['lat'], cidade_1['long'])
     coord2 = (cidade_2['lat'], cidade_2['long'])
-    return float(geopy.distance.distance(coord1, coord2).km)
+    return int(geopy.distance.distance(coord1, coord2).km)
 
 
 def cria_grafo(df):
