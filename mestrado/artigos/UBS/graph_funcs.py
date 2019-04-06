@@ -1,52 +1,16 @@
 import networkx as nx
-import geopy.distance
 import collections
 import matplotlib.pyplot as plt
-import googlemaps
-
-
-def calcula_distancia_gmaps(cidade_1, cidade_2):
-    # Função recebe dois nós e calcula a distância em Km
-    # entre eles à partir das coordenadas
-    # Preencher API Key da aplicação distancia-ubs
-    google_maps_api_key = ''
-    gmaps = googlemaps.Client(key=google_maps_api_key)
-    coord1 = (cidade_1['lat'], cidade_1['long'])
-    coord2 = (cidade_2['lat'], cidade_2['long'])
-    distancia = gmaps.distance_matrix(coord1, coord2,
-                                      mode='driving')
-    distancia = distancia['rows'][0]['elements'][0]['distance']['value']
-    print('Coord1: ' + str(coord1))
-    print('Coord2: ' + str(coord2))
-    print('Distância: ' + str(distancia))
-    return distancia
-
-
-def calcula_distancia(cidade_1, cidade_2):
-    # Função recebe dois nós e calcula a distância em Km
-    # entre eles à partir das coordenadas
-    coord1 = (cidade_1['lat'], cidade_1['long'])
-    coord2 = (cidade_2['lat'], cidade_2['long'])
-    return int(geopy.distance.distance(coord1, coord2).km)
+from maps_funcs import calcula_distancia_gmaps, calcula_distancia_bing
+import pandas as pd
 
 
 def cria_grafo_networkx(df):
     print('Iniciando criação do grafo')
     grafo_ubs = nx.MultiDiGraph()
-    grafo_dict = collections.defaultdict(dict)
-    for i in range(0, max(df.index) + 1):
-        for j in range(0, max(df.index) + 1):
-            # Condição para não armazenar um nó com aresta pra si mesmo
-            if i != j:
-                no1 = df.iloc[i]
-                no2 = df.iloc[j]
-                # Para cada chave armazena um dicionario com os outros nós
-                # (vértices) e a distancia em Km para cada um deles
-                grafo_dict[no1['gid']][no2['gid']] = calcula_distancia(no1,
-                                                                       no2)
-                grafo_ubs.add_edge(no1['gid'], no2['gid'],
-                                   weight=calcula_distancia(no1, no2))
-    print(grafo_dict)
+    for index, row in df.iterrows():
+        grafo_ubs.add_edge(row['origem'], row['destino'],
+                           weight=row['distancia'])
     print(nx.info(grafo_ubs))
     print('O grafo tem pesos? ' + str(nx.is_weighted(grafo_ubs)))
     return grafo_ubs
@@ -55,7 +19,7 @@ def cria_grafo_networkx(df):
 def desenha_grafo(grafo):
     # Desenhando o grafo com Matplotlib
     print('Desenhando o grafo com Matplotlib')
-    nx.draw(grafo, with_labels=True)
+    nx.draw_networkx(grafo, with_labels=True)
     plt.draw()
     plt.show()
     # Desenhando o grafo com pygraphviz
@@ -64,10 +28,12 @@ def desenha_grafo(grafo):
     # graphviz.draw('D:\\repos\\study\\mestrado\\artigos\\UBS\\grafo.png')
 
 
-def cria_instacias_grafos(df):
+def cria_instancia_grafo(df, file_name):
     # Criando o arquivo de dados
-    f = open('D:\\repos\\study\\mestrado\\artigos\\UBS\\instancias'
-             '\\arquivos_dados.txt', 'w+')
+    file = 'D:\\repos\\study\\mestrado\\artigos\\UBS\\instancias\\%s' \
+        % file_name
+    print(file)
+    f = open(file, 'w+')
     # Qtd de nós do grafo é a qtd de linhas do DataFrame
     qtd_nos = len(df.index)
     # Qtd de arestas do grafo é multiplicada por 2 pois
@@ -77,7 +43,9 @@ def cria_instacias_grafos(df):
     f.write(str(qtd_nos) + '\t' + str(qtd_arestas) + '\n')
     # Escrevendo no arquivo as coordenadas de cada registro do DataFrame
     for index, row in df.iterrows():
-        f.write(str(row['lat']) + '\t' + str(row['long']) + '\n')
+        print('row: ', row)
+        f.write(str(row['lat_corrigida']) + '\t' +
+                str(row['long_corrigida']) + '\n')
     # Escrevendo no arquivo as distânciasentre cada
     for i in range(0, max(df.index) + 1):
         for j in range(0, max(df.index) + 1):
@@ -88,5 +56,77 @@ def cria_instacias_grafos(df):
                 # Para cada chave armazena um dicionario com os outros nós
                 # (vértices) e a distancia em Km para cada um deles
                 f.write(str(no1['gid']) + '\t' + str(no2['gid']) +
-                        '\t' + str(calcula_distancia(no1, no2)) + '\n')
+                        '\t' + str(calcula_distancia_bing(no1, no2)) + '\n')
     f.close()
+
+
+def roda_funcoes_grafo(nx_grafo):
+    # Connectivity (em "Approximations and Heuristics")
+    print('Connectivity')
+    print(nx.all_pairs_node_connectivity(nx_grafo))
+    # Centrality degree (em "Centrality")
+    print('Centrality degree')
+    print(nx.degree_centrality(nx_grafo))
+    # Closeness (em "Centrality")
+    print('Closeness')
+    print(nx.closeness_centrality(nx_grafo, distance='weight'))
+    # (Shortest Path) Betweenness (em "Centrality")
+    print('Shortest path betweenness')
+    print(nx.betweenness_centrality(nx_grafo, normalized=False,
+          weight='weight'))
+    # Communicability Betweenness
+    print('Communicability Betweenness')
+    print(nx.communicability_betweenness_centrality(nx_grafo.to_undirected(),
+          normalized=False))
+
+
+def roda_funcoes_artigo(nx_grafo):
+    # Função para execução de funções de grafos voltadas
+    # para a escrita do artigo. Foco em caminhos minímos,
+    # otimizações de distâncias, e Árvore Geradora Mínima
+
+    # Executando função para pegar os caminhos mínimos de todos
+    # os nós para todos os outros
+    lista_dijkstra_path = []
+    dijkstra_dict_path = dict(nx.all_pairs_dijkstra_path(nx_grafo,
+                                                         weight='weight'))
+    for key, value in dijkstra_dict_path.items():
+        for key2, value2 in value.items():
+            lista_dijkstra_path.append([key, key2, value2])
+    dijkstra_df_path = pd.DataFrame(lista_dijkstra_path,
+                                    columns=['origem', 'destino', 'caminho'])
+    dijkstra_df_path.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\dijkstra_path.csv', sep=';')
+
+    # Executando função para pegar as distâncias dos caminhos
+    # mínimos entre todos os nós
+    lista_dijkstra_length = []
+    dijkstra_dict_length = dict(nx.all_pairs_dijkstra_path_length(
+        nx_grafo, weight='weight'))
+    for key, value in dijkstra_dict_length.items():
+        for key2, value2 in value.items():
+            lista_dijkstra_length.append([key, key2, value2])
+    dijkstra_df_length = pd.DataFrame(lista_dijkstra_length,
+                                      columns=['origem',
+                                               'destino',
+                                               'distancia'])
+    # Arredondando valores das distâncias para duas casas decimais
+    dijkstra_df_length = dijkstra_df_length.round(2)
+    dijkstra_df_length.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\dijkstra_length.csv', sep=';')
+
+    # Cálculo da média dos caminhos mínimos. Com isso podemos saber
+    # por exemplo a distância mínima que um paciente terá que percorrer
+    # em média para ir para uma outra UBS
+    average_shortest_path = nx.average_shortest_path_length(nx_grafo,
+                                                            weight='weight')
+    print('Average Shortest Path: ', average_shortest_path)
+
+    # Executando Árvore Geradora Mínima do Grafo
+    # O algoritmo traz o caminho e distância para percorrer
+    # todos os nós do grafo
+    mst_list = []
+    mst = nx.minimum_spanning_tree(nx_grafo.to_undirected(), weight='weight')
+    for i, o, w in nx_grafo.edges(data=True):
+        if ((i, o) in mst.edges() or (o, i) in mst.edges()):
+            mst_list.append([i, o, w])
+    mst_df = pd.DataFrame(mst_list, columns=['de', 'para', 'distancia'])
+    mst_df.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\mst.csv', sep=';')
