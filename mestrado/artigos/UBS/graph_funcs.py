@@ -80,7 +80,7 @@ def roda_funcoes_grafo(nx_grafo):
           normalized=False))
 
 
-def roda_funcoes_artigo(nx_grafo):
+def roda_shortest_path_mst(nx_grafo, file_name_prefix):
     # Função para execução de funções de grafos voltadas
     # para a escrita do artigo. Foco em caminhos minímos,
     # otimizações de distâncias, e Árvore Geradora Mínima
@@ -95,7 +95,9 @@ def roda_funcoes_artigo(nx_grafo):
             lista_dijkstra_path.append([key, key2, value2])
     dijkstra_df_path = pd.DataFrame(lista_dijkstra_path,
                                     columns=['origem', 'destino', 'caminho'])
-    dijkstra_df_path.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\dijkstra_path.csv', sep=';')
+    dijkstra_df_path.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\' +
+                            str(file_name_prefix) + '_dijkstra_path.csv',
+                            sep=';')
 
     # Executando função para pegar as distâncias dos caminhos
     # mínimos entre todos os nós
@@ -111,7 +113,9 @@ def roda_funcoes_artigo(nx_grafo):
                                                'distancia'])
     # Arredondando valores das distâncias para duas casas decimais
     dijkstra_df_length = dijkstra_df_length.round(2)
-    dijkstra_df_length.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\dijkstra_length.csv', sep=';')
+    dijkstra_df_length.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\' +
+                              str(file_name_prefix) + '_dijkstra_length.csv',
+                              sep=';')
 
     # Cálculo da média dos caminhos mínimos. Com isso podemos saber
     # por exemplo a distância mínima que um paciente terá que percorrer
@@ -129,4 +133,94 @@ def roda_funcoes_artigo(nx_grafo):
         if ((i, o) in mst.edges() or (o, i) in mst.edges()):
             mst_list.append([i, o, w])
     mst_df = pd.DataFrame(mst_list, columns=['de', 'para', 'distancia'])
-    mst_df.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\mst.csv', sep=';')
+    mst_df.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\' +
+                  str(file_name_prefix) + '_mst.csv',
+                  sep=';')
+
+
+def roda_funcoes_centralidade(nx_grafo, file_name_prefix):
+    # Função para execução de algoritmos de centralidade de grafos
+    # São executados os seguintes algoritmos:
+    # Closeness Centrality, Betweenness Centrality e Efficiency Centrality
+    # Os resultados das execuções são gravados em um arquivo .txt
+
+    # Closeness Centrality
+    print('Executando algoritmo de Closeness Centrality')
+    closeness = nx.closeness_centrality(nx_grafo, distance='weight')
+
+    # Betweenness Centrality
+    print('Executando algoritmo de Betweenness Centrality')
+    betweenness = nx.betweenness_centrality(nx_grafo, normalized=False, weight='weight')
+
+    # Centrality degree
+    print('Executando algoritmo de Centrality degree')
+    degree_centrality = nx.degree_centrality(nx_grafo)
+
+    # Efficiency Centrality
+    print('Executando algoritmo de Global Efficiency')
+    efficiency = nx.global_efficiency(nx.to_undirected(nx_grafo))
+
+    # Abrindo arquivo texto para gravação dos resultados
+    file = 'D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\%s' \
+        % str(file_name_prefix) + '_centralidade.txt'
+    print(file)
+    f = open(file, 'w+')
+    f.write('Closeness Centrality' + '\n')
+    f.write(str(closeness) + '\n')
+    f.write('Betweenness Centrality' + '\n')
+    f.write(str(betweenness) + '\n')
+    f.write('Degree Centrality' + '\n')
+    f.write(str(degree_centrality) + '\n')
+    f.write('Efficiciency Centrality' + '\n')
+    f.write(str(efficiency))
+    f.close()
+
+
+def calculo_centro_grafo(nx_grafo):
+    # Função para calcular o centro do grafo e o menor caminho
+    # dele para todos os outros nós do grafo
+
+    # Calculo do centro do grafo
+    lista_centro_grafo = nx.center(nx_grafo)
+    print('Nós centrais do grafo: ', lista_centro_grafo)
+
+
+def elimina_arestas(nx_grafo, distancia_max):
+    grafo_incompleto = nx.Graph([(u, v, d) for u, v, d
+                                in nx_grafo.edges(data=True)
+                                if d['weight'] < distancia_max])
+    print(nx.info(grafo_incompleto))
+    print('O grafo tem pesos? ' + str(nx.is_weighted(grafo_incompleto)))
+    return grafo_incompleto
+
+
+def caminhos_minimos_um_no(nx_grafo, no, file_name_prefix):
+    lista_dijkstra_path = []
+    dijkstra_dict_path = dict(nx.single_source_dijkstra_path(nx_grafo, no,
+                                                             weight='weight'))
+    for key, value in dijkstra_dict_path.items():
+        lista_dijkstra_path.append([no, key, value])
+    dijkstra_df_path = pd.DataFrame(lista_dijkstra_path,
+                                    columns=['origem', 'destino', 'caminho'])
+    dijkstra_df_path.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\' +
+                            str(file_name_prefix) + str(no) +
+                            '_dijkstra_path_singlesource.csv',
+                            sep=';')
+
+    # Executando função para pegar as distâncias dos caminhos
+    # mínimos entre todos os nós
+    lista_dijkstra_length = []
+    dijkstra_dict_length = dict(nx.single_source_dijkstra_path_length(
+        nx_grafo, no, weight='weight'))
+    for key, value in dijkstra_dict_length.items():
+        lista_dijkstra_length.append([no, key, value])
+    dijkstra_df_length = pd.DataFrame(lista_dijkstra_length,
+                                      columns=['origem',
+                                               'destino',
+                                               'distancia'])
+    # Arredondando valores das distâncias para duas casas decimais
+    dijkstra_df_length = dijkstra_df_length.round(2)
+    dijkstra_df_length.to_csv('D:\\repos\\study\\mestrado\\artigos\\UBS\\resultados\\' +
+                              str(file_name_prefix) + str(no) +
+                              '_dijkstra_length_singlesource.csv',
+                              sep=';')

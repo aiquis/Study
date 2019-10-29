@@ -83,9 +83,11 @@ def corrige_coordenadas(df):
         logradouro = row['no_logradouro']
         numero = row['nu_endereco']
         bairro = row['no_bairro']
+        cidade = row['cidade']
         uf = row['uf']
         endereco = (str(logradouro) + ', ' + str(numero) +
-                    ', ' + str(bairro) + ', ' + str(uf))
+                    ', ' + str(bairro) + ', ' + str(cidade) +
+                    ' - ' + str(uf))
         print(endereco)
         novas_coordenadas_dict = get_coordenadas(endereco)
         lat = novas_coordenadas_dict['lat']

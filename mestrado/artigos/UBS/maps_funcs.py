@@ -12,16 +12,26 @@ def get_coordenadas(endereco):
     params = {'address': endereco, 'key': GOOGLE_API_KEY}
     print('Fazendo request para receber novas coordenadas')
     r = requests.get(url=url, params=params)
-    if r.status_code == 200:
+    res = r.json()
+    coordenadas = {}
+    if (r.status_code == 200 and res['status'] != 'OVER_QUERY_LIMIT'):
         print('Request com sucesso')
-        res = r.json()
-        print('RESPONSE GEOCODE', res)
-        result = res['results'][0]
-        coordenadas = {'lat': result['geometry']['location']['lat'],
-                       'long': result['geometry']['location']['lng'],
-                       'endereco': result['formatted_address']}
+        if res['status'] == 'OK':
+            print('RESPONSE GEOCODE', res)
+            result = res['results'][0]
+            coordenadas = {'lat': result['geometry']['location']['lat'],
+                           'long': result['geometry']['location']['lng'],
+                           'endereco': result['formatted_address']}
+        elif res['status'] == 'ZERO_RESULTS':
+            print('Endereço não encontrado')
+            coordenadas = {'lat': 0,
+                           'long': 0,
+                           'endereco': 'Não encontrado'}
     else:
-        print('Erro no request')
+        print('Erro no request ou limite por dia atingido')
+        coordenadas = {'lat': -1,
+                       'long': -1,
+                       'endereco': 'Não encontrado'}
     print(coordenadas)
     return(coordenadas)
 
@@ -70,7 +80,7 @@ def calcula_distancia_bing(cidade_1, cidade_2):
     print(destino)
     params = {'origins': origem, 'destinations': destino,
               'key': BING_API_KEY, 'travelMode': 'driving'}
-    r = requests.get(url=url, params=params)
+    r = requests.get(url=url, params=params, timeout=600)
     if r.status_code == 200:
         res = r.json()
         print('RESPONSE DISTANCE MAXTRIX', res)
